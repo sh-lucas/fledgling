@@ -3,15 +3,21 @@ package main
 import "fmt"
 
 func render(state Scene) {
-	fmt.Println("========================================================================")
-	for line := range Height {
-		for column := range Width {
-			if state.Map[line][column] {
+	// limpa 13 linhas acima
+	fmt.Printf("\033[%dA\033[J", 14)
+
+	fmt.Printf("Score: %04d ============================================================\n", state.Score)
+
+	for line := 11; line >= 0; line-- {
+		for column := 0; column < 36; column++ {
+			pos := state.Map[column][line]
+			if pos {
 				fmt.Printf("██")
 			} else {
-				fmt.Printf(" .")
+				fmt.Printf("  ")
 			}
 		}
-		fmt.Printf("\n")
+		fmt.Println()
 	}
+	fmt.Println()
 }

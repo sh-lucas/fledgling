@@ -2,45 +2,71 @@ package main
 
 import (
 	"fmt"
+	"math"
+	"math/rand"
 	"time"
 )
 
 // scene is the map 12h x 36w
-const Height = 12
-const Width = 36
+const Height = 12 // line count
+const Width = 36  // column count
+
+// 12 tiles high column
+type Column [Height]bool
 
 type Scene struct {
-	Map   [Height][Width]bool
-	BirdY int
-	// builds up every tick towards -1; adds to BirdY
+	// width and height should be inverted
+	Map      []Column
+	BirdY    int
 	Velocity int
-	// y distance from start and how many seconds have passed
-	Score int
+	Score    int
+}
+
+func NewScene() Scene {
+	return Scene{
+		Map:      make([]Column, Width),
+		BirdY:    8,
+		Velocity: 0,
+		Score:    0,
+	}
 }
 
 func (state *Scene) Tick() {
 	state.Score++
 
-	if state.Score%2 == 0 {
-		state.BirdY--
-	}
-
-	if state.Score%12 == 0 {
-		spawnPipes(state)
-	}
+	// shifts whole map to the left, and add a new column to the right
+	state.Map = append(state.Map[1:], nextColumn(state))
 }
 
-func spawnPipes(state *Scene) {
+func nextColumn(state *Scene) Column {
+	var col Column
 
+	if state.Score%12 == 0 {
+		// generates pipes
+		openingHeight := rand.Int31n(10) + 1
+		for i := 0; i < 12; i++ {
+			// 5 tiles tall opening = < 3 tiles from the center of the opening
+			isCloseToOpening := math.Abs(float64(i-int(openingHeight))) < 3
+			if isCloseToOpening {
+				col[i] = false
+			} else {
+				col[i] = true
+			}
+		}
+	}
+
+	return col
 }
 
 func main() {
 	// local variable for state tracking
-	var scene Scene
+	scene := NewScene()
+
 	fmt.Println("Flappy Bird")
 
 	t := time.NewTicker(1 * time.Second)
 	for range t.C {
+		scene.Tick()
 		render(scene)
 	}
 }
