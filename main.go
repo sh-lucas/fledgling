@@ -31,19 +31,31 @@ func NewScene() Scene {
 	}
 }
 
-func (state *Scene) Tick() {
+func (state *Scene) Tick(jump bool) {
 	state.Score++
 
 	// shifts whole map to the left, and add a new column to the right
 	state.Map = append(state.Map[1:], nextColumn(state))
+
+	state.BirdY += state.Velocity
+
+	if state.Velocity > -1 {
+		state.Velocity--
+	}
+
+	if jump {
+		state.Velocity = 2
+	}
 }
 
 func nextColumn(state *Scene) Column {
 	var col Column
 
-	if state.Score%12 == 0 {
+	columnsAnchor := (state.Score + 11)
+
+	if columnsAnchor%12 == 0 {
 		// generates pipes
-		openingHeight := rand.Int31n(10) + 1
+		openingHeight := rand.Int31n(7) + 3
 		for i := 0; i < 12; i++ {
 			// 5 tiles tall opening = < 3 tiles from the center of the opening
 			isCloseToOpening := math.Abs(float64(i-int(openingHeight))) < 3
@@ -66,7 +78,7 @@ func main() {
 
 	t := time.NewTicker(1 * time.Second)
 	for range t.C {
-		scene.Tick()
+		scene.Tick(false)
 		render(scene)
 	}
 }
